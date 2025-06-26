@@ -7,11 +7,14 @@ import travelRoutes from './routes/travelRoutes.js';
 import condoRoutes from './routes/condoRoutes.js';
 import restaurantRoutes from './routes/restaurantRoutes.js';
 import hotelRoutes from './routes/hotelRoutes.js';
+import cjob from './config/cron.js';
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+if(process.env.NODE_ENV !== 'production') cjob.start();
 
 // Initialize Supabase client
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -84,6 +87,10 @@ app.use('/api', travelRoutes);
 app.use('/api', condoRoutes);
 app.use('/api', restaurantRoutes);
 app.use('/api', hotelRoutes);
+
+app.get('/api/health', (req, res) => {
+  res.status(200).json  ({ message: 'API is running' });
+});
 
 // Start server
 initDB()
