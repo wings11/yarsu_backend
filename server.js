@@ -125,7 +125,7 @@ app.use('/api', hotelRoutes);
 app.use('/api', authRoutes);
 
 app.get('/api/health', (req, res) => {
-  res.status(200).json  ({ message: 'API is running' });
+  res.status(200).json  ({ message: 'API is running Healthily' });
 });
 
 // Start server
