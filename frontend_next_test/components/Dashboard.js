@@ -4,8 +4,26 @@ import { useState, useEffect } from 'react'
 import Image from "next/image"
 import AdminPanel from '@/components/AdminPanel'
 import { supabase } from '@/lib/supabase'
+import ChatTest from './ChatTest'
+import AdminChatList from './AdminChatList'
 
 export default function Dashboard({ user, userRole, onSignOut }) {
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [accessToken, setAccessToken] = useState('');
+
+  useEffect(() => {
+    const getToken = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setAccessToken(session?.access_token || '');
+    };
+    getToken();
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
+      getToken();
+    });
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-50">
       <header className="bg-white shadow-sm border-b">
@@ -101,6 +119,23 @@ export default function Dashboard({ user, userRole, onSignOut }) {
             </div>
           </div>
         </div>
+
+        {['admin', 'superadmin'].includes(userRole) ? (
+          <div style={{ display: 'flex', gap: 32 }}>
+            <AdminChatList token={accessToken} onSelectChat={setSelectedChat} />
+            <div style={{ flex: 1 }}>
+              {selectedChat ? (
+                <ChatTest chatId={selectedChat.id} token={accessToken} />
+              ) : (
+                <div style={{ marginTop: 40, color: '#888' }}>Select a user chat to view messages.</div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <ChatTest chatId={user.id} token={accessToken} />
+          </div>
+        )}
       </main>
     </div>
   )

@@ -3,7 +3,7 @@ import { supabase } from './supabase'
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api'
 
 // Get auth token for API requests
-const getAuthToken = async () => {
+export const getAuthToken = async () => {
   const { data: { session } } = await supabase.auth.getSession()
   return session?.access_token
 }

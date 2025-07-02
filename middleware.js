@@ -3,6 +3,8 @@ import { supabase, supabaseAdmin } from './server.js';
 export const restrictTo = (...allowedRoles) => {
   return async (req, res, next) => {
     try {
+      // Debug: log all headers for troubleshooting
+      console.log('restrictTo headers:', req.headers);
       const authHeader = req.headers.authorization;
       if (!authHeader || !authHeader.startsWith('Bearer ')) {
         return res.status(401).json({ error: 'Missing or invalid authorization header' });

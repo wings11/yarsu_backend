@@ -8,6 +8,7 @@ import condoRoutes from './routes/condoRoutes.js';
 import restaurantRoutes from './routes/restaurantRoutes.js';
 import hotelRoutes from './routes/hotelRoutes.js';
 import authRoutes from './routes/authRoutes.js';
+import chatRoutes from './routes/chatRoutes.js';
 import cjob from './config/cron.js';
 
 dotenv.config();
@@ -42,8 +43,14 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
   }
 });
 
-app.use(cors());
+app.use(cors({
+  origin: '*', // or '*'
+  credentials: true,
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true })); // Add this for form-data
 
 // Initialize database tables
 async function initDB() {
@@ -123,6 +130,7 @@ app.use('/api', condoRoutes);
 app.use('/api', restaurantRoutes);
 app.use('/api', hotelRoutes);
 app.use('/api', authRoutes);
+app.use('/api', chatRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json  ({ message: 'API is running Healthily' });

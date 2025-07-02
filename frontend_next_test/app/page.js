@@ -193,10 +193,41 @@ export default function Home() {
   }
 
   return (
-    <Dashboard 
-      user={user} 
-      userRole={userRole} 
-      onSignOut={handleSignOut} 
-    />
+    <div>
+      <Dashboard 
+        user={user} 
+        userRole={userRole} 
+        onSignOut={handleSignOut} 
+      />
+      <div style={{ textAlign: 'center', marginTop: 24 }}>
+        {userRole === 'admin' || userRole === 'superadmin' ? (
+          <a href="/admin/chat" style={{
+            display: 'inline-block',
+            padding: '12px 32px',
+            background: '#2563eb',
+            color: '#fff',
+            borderRadius: 8,
+            fontWeight: 600,
+            textDecoration: 'none',
+            fontSize: 18
+          }}>
+            Go to Admin Chat
+          </a>
+        ) : (
+          <a href="/chat" style={{
+            display: 'inline-block',
+            padding: '12px 32px',
+            background: '#2563eb',
+            color: '#fff',
+            borderRadius: 8,
+            fontWeight: 600,
+            textDecoration: 'none',
+            fontSize: 18
+          }}>
+            Go to Chat
+          </a>
+        )}
+      </div>
+    </div>
   )
 }
