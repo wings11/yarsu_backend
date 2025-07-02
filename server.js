@@ -10,6 +10,8 @@ import hotelRoutes from './routes/hotelRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
 import cjob from './config/cron.js';
+import http from 'http';
+import { Server as SocketIOServer } from 'socket.io';
 
 dotenv.config();
 
@@ -136,10 +138,39 @@ app.get('/api/health', (req, res) => {
   res.status(200).json  ({ message: 'API is running Healthily' });
 });
 
+// --- SOCKET.IO SETUP ---
+const httpServer = http.createServer(app);
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: '*',
+    methods: ['GET', 'POST']
+  }
+});
+
+io.on('connection', (socket) => {
+  console.log('A user connected:', socket.id);
+
+  socket.on('send_message', (data) => {
+    // Broadcast the message to all clients in the same chat room
+    io.to(data.chatId).emit('receive_message', data);
+  });
+
+  socket.on('join_chat', (chatId) => {
+    socket.join(chatId);
+    console.log(`Socket ${socket.id} joined chat ${chatId}`);
+  });
+
+  socket.on('disconnect', () => {
+    console.log('A user disconnected:', socket.id);
+  });
+});
+
+// --- END SOCKET.IO SETUP ---
+
 // Start server
 initDB()
   .then(() => {
-    app.listen(PORT, () => {
+    httpServer.listen(PORT, () => {
       console.log(`Server is running on port ${PORT}`);
     });
   })
