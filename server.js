@@ -9,6 +9,7 @@ import restaurantRoutes from './routes/restaurantRoutes.js';
 import hotelRoutes from './routes/hotelRoutes.js';
 import authRoutes from './routes/authRoutes.js';
 import chatRoutes from './routes/chatRoutes.js';
+import courseRoutes from './routes/courseRoutes.js';
 import cjob from './config/cron.js';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
@@ -133,6 +134,7 @@ app.use('/api', restaurantRoutes);
 app.use('/api', hotelRoutes);
 app.use('/api', authRoutes);
 app.use('/api', chatRoutes);
+app.use('/api', courseRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json  ({ message: 'API is running Healthily' });
