@@ -17,7 +17,7 @@ import { restrictTo } from '../middleware.js';
 const router = express.Router();
 
 // Job routes
-router.post('/jobs',restrictTo('admin', 'superadmin'), createJob);
+router.post('/jobs', createJob);
 router.get('/jobs', getAllJobs);
 router.get('/jobs/:id', getJobById);
 router.put('/jobs/:id', updateJob);
