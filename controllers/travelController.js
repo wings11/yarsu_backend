@@ -1,7 +1,7 @@
 import { supabase } from '../server.js';
 
 export const createTravelPost = async (req, res) => {
-  const { name, place, highlights, images, admin_rating } = req.body;
+  const { name, place, highlights, images, admin_rating, notes } = req.body;
   if (!Number.isInteger(admin_rating) || admin_rating < 1 || admin_rating > 5) {
     return res.status(400).json({ error: 'admin_rating must be an integer between 1 and 5' });
   }
@@ -11,7 +11,7 @@ export const createTravelPost = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('travel_posts')
-      .insert([{ name, place, highlights, images, admin_rating }])
+      .insert([{ name, place, highlights, images, admin_rating, notes }])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);
@@ -51,7 +51,7 @@ export const getTravelPostById = async (req, res) => {
 
 export const updateTravelPost = async (req, res) => {
   const { id } = req.params;
-  const { name, place, highlights, images, admin_rating } = req.body;
+  const { name, place, highlights, images, admin_rating, notes } = req.body;
   if (admin_rating && (!Number.isInteger(admin_rating) || admin_rating < 1 || admin_rating > 5)) {
     return res.status(400).json({ error: 'admin_rating must be an integer between 1 and 5' });
   }
@@ -64,7 +64,7 @@ export const updateTravelPost = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('travel_posts')
-      .update({ name, place, highlights, images, admin_rating })
+      .update({ name, place, highlights, images, admin_rating, notes })
       .eq('id', id)
       .select();
     if (error) throw error;
