@@ -1,7 +1,7 @@
 import { supabase } from '../server.js';
 
 export const createCondo = async (req, res) => {
-  const { name, address, rent_fee, images, swimming_pool, free_wifi, gym, garden, co_working_space } = req.body;
+  const { name, address, rent_fee, images, swimming_pool, free_wifi, gym, garden, co_working_space,notes } = req.body;
   if (!Array.isArray(images)) {
     return res.status(400).json({ error: 'images must be an array' });
   }
@@ -12,7 +12,7 @@ export const createCondo = async (req, res) => {
     const { data, error } = await supabase
       .from('condos')
       .insert([
-        { name, address, rent_fee, images, swimming_pool, free_wifi, gym, garden, co_working_space }
+        { name, address, rent_fee, images, swimming_pool, free_wifi, gym, garden, co_working_space, notes }
       ])
       .select();
     if (error) throw error;
@@ -53,7 +53,7 @@ export const getCondoById = async (req, res) => {
 
 export const updateCondo = async (req, res) => {
   const { id } = req.params;
-  const { name, address, rent_fee, images, swimming_pool, free_wifi, gym, garden, co_working_space } = req.body;
+  const { name, address, rent_fee, images, swimming_pool, free_wifi, gym, garden, co_working_space, notes } = req.body;
   if (images && !Array.isArray(images)) {
     return res.status(400).json({ error: 'images must be an array' });
   }
@@ -63,7 +63,7 @@ export const updateCondo = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('condos')
-      .update({ name, address, rent_fee, images, swimming_pool, free_wifi, gym, garden, co_working_space })
+      .update({ name, address, rent_fee, images, swimming_pool, free_wifi, gym, garden, co_working_space, notes })
       .eq('id', id)
       .select();
     if (error) throw error;
