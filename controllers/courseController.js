@@ -1,14 +1,14 @@
 import { supabase } from '../server.js';
 
 export const createCourse = async (req, res) => {
-  const { name, duration, price, centre_name, location } = req.body;
+  const { name, duration, price, centre_name, location, notes } = req.body;
   if (typeof price !== 'number' || price <= 0) {
     return res.status(400).json({ error: 'price must be a positive number' });
   }
   try {
     const { data, error } = await supabase
       .from('courses')
-      .insert([{ name, duration, price, centre_name, location }])
+      .insert([{ name, duration, price, centre_name, location, notes }])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);
@@ -48,14 +48,14 @@ export const getCourseById = async (req, res) => {
 
 export const updateCourse = async (req, res) => {
   const { id } = req.params;
-  const { name, duration, price, centre_name, location } = req.body;
+  const { name, duration, price, centre_name, location, notes } = req.body;
   if (price && (typeof price !== 'number' || price <= 0)) {
     return res.status(400).json({ error: 'price must be a positive number' });
   }
   try {
     const { data, error } = await supabase
       .from('courses')
-      .update({ name, duration, price, centre_name, location })
+      .update({ name, duration, price, centre_name, location, notes })
       .eq('id', id)
       .select();
     if (error) throw error;

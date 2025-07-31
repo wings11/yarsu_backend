@@ -13,6 +13,8 @@ import courseRoutes from './routes/courseRoutes.js';
 import cjob from './config/cron.js';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
+import generalPostRoutes from './routes/generalPostRoutes.js';
+import docRoutes from './routes/docRoutes.js';
 
 dotenv.config();
 
@@ -26,9 +28,6 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
 
-console.log('Supabase URL:', supabaseUrl);
-console.log('Supabase Anon Key exists:', !!supabaseAnonKey);
-console.log('Supabase Service Key exists:', !!supabaseServiceKey);
 
 if (!supabaseUrl || !supabaseAnonKey || !supabaseServiceKey) {
   console.error('Missing Supabase environment variables');
@@ -135,6 +134,8 @@ app.use('/api', hotelRoutes);
 app.use('/api', authRoutes);
 app.use('/api', chatRoutes);
 app.use('/api', courseRoutes);
+app.use('/api', generalPostRoutes);
+app.use('/api', docRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json  ({ message: 'API is running Healthily' });
