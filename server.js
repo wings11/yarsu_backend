@@ -46,7 +46,7 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
 });
 
 app.use(cors({
-  origin: '*', // or '*'
+  origin: '*',
   credentials: true,
   allowedHeaders: ['Content-Type', 'Authorization'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']

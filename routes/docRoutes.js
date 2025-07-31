@@ -13,10 +13,10 @@ const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Doc post routes
-router.post('/docs', restrictTo('admin', 'superadmin'), upload.array('media', 10), createDocPost);
+router.post('/docs', upload.array('media', 10), createDocPost);
 router.get('/docs', getAllDocPosts);
 router.get('/docs/:id', getDocPostById);
-router.put('/docs/:id', restrictTo('admin', 'superadmin'), upload.array('media', 10), updateDocPost);
-router.delete('/docs/:id', restrictTo('admin', 'superadmin'), deleteDocPost);
+router.put('/docs/:id', upload.array('media', 10), updateDocPost);
+router.delete('/docs/:id', deleteDocPost);
 
 export default router;
