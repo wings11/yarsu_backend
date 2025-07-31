@@ -12,10 +12,9 @@ export const createGeneralPost = async (req, res) => {
     return res.status(400).json({ error: 'videos must be an array' });
   }
   try {
-    const { data: { user } } = await supabase.auth.getUser(req.headers.authorization.split(' ')[1]);
     const { data, error } = await supabase
       .from('general_posts')
-      .insert([{ text, images: images || [], videos: videos || [], user_id: user.id }])
+      .insert([{ text, images: images || [], videos: videos || [] }])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);
@@ -28,7 +27,7 @@ export const getAllGeneralPosts = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('general_posts')
-      .select('*, users(email)')
+      .select('*')
       .order('created_at', { ascending: false });
     if (error) throw error;
     res.json(data);
@@ -42,7 +41,7 @@ export const getGeneralPostById = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('general_posts')
-      .select('*, users(email)')
+      .select('*')
       .eq('id', id)
       .single();
     if (error) throw error;

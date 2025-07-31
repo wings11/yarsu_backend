@@ -9,7 +9,6 @@ export const createDocPost = async (req, res) => {
   }
 
   try {
-    const { data: { user } } = await supabase.auth.getUser(req.headers.authorization.split(' ')[1]);
     let mediaUrls = [];
 
     // Upload files to Supabase Storage
@@ -31,7 +30,7 @@ export const createDocPost = async (req, res) => {
     // Insert post into docs table
     const { data, error } = await supabase
       .from('docs')
-      .insert([{ text, media: mediaUrls, user_id: user.id }])
+      .insert([{ text, media: mediaUrls }])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);
@@ -45,7 +44,7 @@ export const getAllDocPosts = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('docs')
-      .select('*, users(email)')
+      .select('*')
       .order('created_at', { ascending: false });
     if (error) throw error;
     res.json(data);
@@ -60,7 +59,7 @@ export const getDocPostById = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('docs')
-      .select('*, users(email)')
+      .select('*')
       .eq('id', id)
       .single();
     if (error) throw error;
