@@ -75,9 +75,6 @@ export const updateDocPost = async (req, res) => {
   const { id } = req.params;
   const { text } = req.body;
   const files = req.files;
-  if (!text && (!files || files.length === 0)) {
-    return res.status(400).json({ error: 'At least one of text or media must be provided' });
-  }
 
   try {
     let mediaUrls = [];
