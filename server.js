@@ -15,6 +15,9 @@ import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
 import generalRoutes from './routes/generalRoutes.js';
 import docsRoutes from './routes/docsRoutes.js';
+import linkRoutes from './routes/linkRoutes.js';
+import highlightRoutes from './routes/highlightRoutes.js';
+
 dotenv.config();
 
 const app = express();
@@ -135,6 +138,8 @@ app.use('/api', chatRoutes);
 app.use('/api', courseRoutes);
 app.use('/api', generalRoutes);
 app.use('/api', docsRoutes);
+app.use('/api', linkRoutes);
+app.use('/api', highlightRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json  ({ message: 'API is running Healthily' });
