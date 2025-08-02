@@ -13,9 +13,8 @@ import courseRoutes from './routes/courseRoutes.js';
 import cjob from './config/cron.js';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
-import generalPostRoutes from './routes/generalPostRoutes.js';
-import docRoutes from './routes/docRoutes.js';
-
+import generalRoutes from './routes/generalRoutes.js';
+import docsRoutes from './routes/docsRoutes.js';
 dotenv.config();
 
 const app = express();
@@ -134,8 +133,8 @@ app.use('/api', hotelRoutes);
 app.use('/api', authRoutes);
 app.use('/api', chatRoutes);
 app.use('/api', courseRoutes);
-app.use('/api', generalPostRoutes);
-app.use('/api', docRoutes);
+app.use('/api', generalRoutes);
+app.use('/api', docsRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json  ({ message: 'API is running Healthily' });

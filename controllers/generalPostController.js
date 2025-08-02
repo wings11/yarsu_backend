@@ -1,20 +1,17 @@
 import { supabase } from '../server.js';
 
 export const createGeneralPost = async (req, res) => {
-  const { text, images, videos } = req.body;
-  if (!text && (!images || images.length === 0) && (!videos || videos.length === 0)) {
-    return res.status(400).json({ error: 'At least one of text, images, or videos must be provided' });
+  const { text, media } = req.body;
+  if (!text) {
+    return res.status(400).json({ error: 'text is required' });
   }
-  if (images && !Array.isArray(images)) {
-    return res.status(400).json({ error: 'images must be an array' });
-  }
-  if (videos && !Array.isArray(videos)) {
-    return res.status(400).json({ error: 'videos must be an array' });
+  if (media && !Array.isArray(media)) {
+    return res.status(400).json({ error: 'media must be an array' });
   }
   try {
     const { data, error } = await supabase
-      .from('general_posts')
-      .insert([{ text, images: images || [], videos: videos || [] }])
+      .from('general')
+      .insert([{ text, media: media || [] }])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);
@@ -26,7 +23,7 @@ export const createGeneralPost = async (req, res) => {
 export const getAllGeneralPosts = async (req, res) => {
   try {
     const { data, error } = await supabase
-      .from('general_posts')
+      .from('general')
       .select('*')
       .order('created_at', { ascending: false });
     if (error) throw error;
@@ -40,7 +37,7 @@ export const getGeneralPostById = async (req, res) => {
   const { id } = req.params;
   try {
     const { data, error } = await supabase
-      .from('general_posts')
+      .from('general')
       .select('*')
       .eq('id', id)
       .single();
@@ -54,20 +51,17 @@ export const getGeneralPostById = async (req, res) => {
 
 export const updateGeneralPost = async (req, res) => {
   const { id } = req.params;
-  const { text, images, videos } = req.body;
-  if (!text && (!images || images.length === 0) && (!videos || videos.length === 0)) {
-    return res.status(400).json({ error: 'At least one of text, images, or videos must be provided' });
+  const { text, media } = req.body;
+  if (!text) {
+    return res.status(400).json({ error: 'text is required' });
   }
-  if (images && !Array.isArray(images)) {
-    return res.status(400).json({ error: 'images must be an array' });
-  }
-  if (videos && !Array.isArray(videos)) {
-    return res.status(400).json({ error: 'videos must be an array' });
+  if (media && !Array.isArray(media)) {
+    return res.status(400).json({ error: 'media must be an array' });
   }
   try {
     const { data, error } = await supabase
-      .from('general_posts')
-      .update({ text, images: images || [], videos: videos || [] })
+      .from('general')
+      .update({ text, media: media || [] })
       .eq('id', id)
       .select();
     if (error) throw error;
@@ -82,7 +76,7 @@ export const deleteGeneralPost = async (req, res) => {
   const { id } = req.params;
   try {
     const { data, error } = await supabase
-      .from('general_posts')
+      .from('general')
       .delete()
       .eq('id', id)
       .select();

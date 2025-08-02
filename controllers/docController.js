@@ -1,18 +1,17 @@
 import { supabase } from '../server.js';
-import path from 'path';
 
-export const createDocPost = async (req, res) => {
+export const createDocsPost = async (req, res) => {
   const { text, media } = req.body;
   if (!text) {
-    return res.status(400).json({ error: 'Text is required' });
+    return res.status(400).json({ error: 'text is required' });
   }
   if (media && !Array.isArray(media)) {
-    return res.status(400).json({ error: 'Media must be an array' });
+    return res.status(400).json({ error: 'media must be an array' });
   }
   try {
     const { data, error } = await supabase
       .from('docs')
-      .insert([{ text, media: media || null }])
+      .insert([{ text, media: media || [] }])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);
@@ -21,7 +20,7 @@ export const createDocPost = async (req, res) => {
   }
 };
 
-export const getAllDocPosts = async (req, res) => {
+export const getAllDocsPosts = async (req, res) => {
   try {
     const { data, error } = await supabase
       .from('docs')
@@ -34,7 +33,7 @@ export const getAllDocPosts = async (req, res) => {
   }
 };
 
-export const getDocPostById = async (req, res) => {
+export const getDocsPostById = async (req, res) => {
   const { id } = req.params;
   try {
     const { data, error } = await supabase
@@ -43,37 +42,37 @@ export const getDocPostById = async (req, res) => {
       .eq('id', id)
       .single();
     if (error) throw error;
-    if (!data) return res.status(404).json({ error: 'Doc post not found' });
+    if (!data) return res.status(404).json({ error: 'Docs post not found' });
     res.json(data);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const updateDocPost = async (req, res) => {
+export const updateDocsPost = async (req, res) => {
   const { id } = req.params;
   const { text, media } = req.body;
   if (!text) {
-    return res.status(400).json({ error: 'Text is required' });
+    return res.status(400).json({ error: 'text is required' });
   }
   if (media && !Array.isArray(media)) {
-    return res.status(400).json({ error: 'Media must be an array' });
+    return res.status(400).json({ error: 'media must be an array' });
   }
   try {
     const { data, error } = await supabase
       .from('docs')
-      .update({ text, media: media || null })
+      .update({ text, media: media || [] })
       .eq('id', id)
       .select();
     if (error) throw error;
-    if (data.length === 0) return res.status(404).json({ error: 'Doc post not found' });
+    if (data.length === 0) return res.status(404).json({ error: 'Docs post not found' });
     res.json(data[0]);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
 };
 
-export const deleteDocPost = async (req, res) => {
+export const deleteDocsPost = async (req, res) => {
   const { id } = req.params;
   try {
     const { data, error } = await supabase
@@ -82,35 +81,9 @@ export const deleteDocPost = async (req, res) => {
       .eq('id', id)
       .select();
     if (error) throw error;
-    if (data.length === 0) return res.status(404).json({ error: 'Doc post not found' });
-    res.json({ message: 'Doc post deleted successfully' });
+    if (data.length === 0) return res.status(404).json({ error: 'Docs post not found' });
+    res.json({ message: 'Docs post deleted successfully' });
   } catch (error) {
     res.status(500).json({ error: error.message });
-  }
-};
-
-export const uploadMedia = async (req, res) => {
-  if (!req.files || req.files.length === 0) {
-    return res.status(400).json({ error: 'No files uploaded' });
-  }
-  try {
-    const mediaUrls = [];
-    for (const file of req.files) {
-      const fileExt = path.extname(file.originalname).toLowerCase();
-      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}${fileExt}`;
-      const { data, error } = await supabase.storage
-        .from('media')
-        .upload(fileName, file.buffer, {
-          contentType: file.mimetype,
-        });
-      if (error) throw error;
-      const { data: { publicUrl } } = supabase.storage
-        .from('media')
-        .getPublicUrl(fileName);
-      mediaUrls.push(publicUrl);
-    }
-    res.json({ mediaUrls });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to upload media', details: error.message });
   }
 };

@@ -11,10 +11,10 @@ import { restrictTo } from '../middleware.js';
 const router = express.Router();
 
 // General post routes
-router.post('/general-posts',  createGeneralPost);
-router.get('/general-posts', getAllGeneralPosts);
-router.get('/general-posts/:id', getGeneralPostById);
-router.put('/general-posts/:id',  updateGeneralPost);
-router.delete('/general-posts/:id', deleteGeneralPost);
+router.post('/general', createGeneralPost);
+router.get('/general', getAllGeneralPosts);
+router.get('/general/:id', getGeneralPostById);
+router.put('/general/:id', updateGeneralPost);
+router.delete('/general/:id', deleteGeneralPost);
 
 export default router;
