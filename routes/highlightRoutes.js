@@ -11,10 +11,10 @@ import { restrictTo } from '../middleware.js';
 const router = express.Router();
 
 // Highlight routes
-router.post('/highlights', restrictTo('admin', 'superadmin'), createHighlight);
+router.post('/highlights', createHighlight);
 router.get('/highlights', getAllHighlights);
 router.get('/highlights/:id', getHighlightById);
-router.put('/highlights/:id', restrictTo('admin', 'superadmin'), updateHighlight);
-router.delete('/highlights/:id', restrictTo('admin', 'superadmin'), deleteHighlight);
+router.put('/highlights/:id',  updateHighlight);
+router.delete('/highlights/:id',  deleteHighlight);
 
 export default router;
