@@ -5,6 +5,7 @@ import {
   getDocPostById,
   updateDocPost,
   deleteDocPost,
+  uploadMedia,
 } from '../controllers/docController.js';
 import { restrictTo } from '../middleware.js';
 import multer from 'multer';
@@ -13,10 +14,11 @@ const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 // Doc post routes
-router.post('/docs', upload.array('media', 10), createDocPost);
+router.post('/docs',  createDocPost);
 router.get('/docs', getAllDocPosts);
 router.get('/docs/:id', getDocPostById);
-router.put('/docs/:id', upload.array('media', 10), updateDocPost);
+router.put('/docs/:id', updateDocPost);
 router.delete('/docs/:id', deleteDocPost);
+router.post('/docs/upload-media', upload.array('media', 10), uploadMedia);
 
 export default router;
