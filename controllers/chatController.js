@@ -11,15 +11,14 @@ async function getChats(req, res) {
       const { data: chats, error } = await supabase
         .from('chats')
         .select('*')
-        .eq('user_id', id)
-        .single();
+        .eq('user_id', id);
       if (error) {
         console.error('User getChats error:', error);
         return res.status(400).json({ error });
       }
-      return res.json([chats]);
+      return res.json(chats || []); // Return empty array if no chat exists
     } else {
-      // Admin: see all chats (no join)
+      // Admin: see all chats
       const { data: chats, error } = await supabaseAdmin
         .from('chats')
         .select('*');
@@ -113,7 +112,7 @@ async function sendMessage(req, res) {
         type: finalType,
         file_url,
       },
-    ]).select().single(); // Ensure we get the inserted row
+    ]).select().single();
     if (error) return res.status(400).json({ error });
     // Always return chat_id for frontend
     res.json({ chat_id, message: data });
