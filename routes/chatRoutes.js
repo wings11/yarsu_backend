@@ -2,7 +2,9 @@ import express from 'express';
 import { getChats, getMessages, sendMessage, replyMessage } from '../controllers/chatController.js';
 import upload from '../uploadMiddleware.js';
 import { restrictTo } from '../middleware.js';
+import { createClient } from '@supabase/supabase-js';
 
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 const router = express.Router();
 
 router.get('/chats', restrictTo('user', 'admin', 'superadmin'), getChats);
