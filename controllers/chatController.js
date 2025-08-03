@@ -13,11 +13,12 @@ async function getChats(req, res) {
   const { role, id } = req.user;
   console.log('getChats - User:', { role, id });
   try {
+    if (!isValidUUID(id)) {
+      console.log('getChats - Invalid user_id:', id);
+      return res.status(400).json({ error: 'Invalid user_id format' });
+    }
+
     if (role === 'user') {
-      if (!isValidUUID(id)) {
-        console.log('getChats - Invalid user_id:', id);
-        return res.status(400).json({ error: 'Invalid user_id format' });
-      }
       // User: only see their own chat
       const { data: chats, error } = await supabase
         .from('chats')
@@ -83,31 +84,19 @@ async function sendMessage(req, res) {
       return res.status(400).json({ error: 'Invalid user_id format' });
     }
 
-    // If no chat_id, create/find chat for this user
+    // If no chat_id, fetch the user's chat
     if (!chat_id) {
-      // Try to find existing chat
-      let { data: chat, error: chatError } = await supabase
+      const { data: chat, error: chatError } = await supabase
         .from('chats')
         .select('id')
         .eq('user_id', id)
         .single();
-      if (!chat) {
-        // Create new chat
-        const { data: newChat, error: createError } = await supabase
-          .from('chats')
-          .insert([{ user_id: id }])
-          .select()
-          .single();
-        if (createError) {
-          console.error('sendMessage - Create chat error:', createError);
-          return res.status(500).json({ error: createError.message });
-        }
-        chat_id = newChat.id;
-        console.log('sendMessage - Created new chat:', chat_id);
-      } else {
-        chat_id = chat.id;
-        console.log('sendMessage - Found existing chat:', chat_id);
+      if (chatError || !chat) {
+        console.error('sendMessage - Chat query error:', chatError);
+        return res.status(400).json({ error: 'No chat found for user' });
       }
+      chat_id = chat.id;
+      console.log('sendMessage - Found chat:', chat_id);
     }
 
     if (req.file) {
