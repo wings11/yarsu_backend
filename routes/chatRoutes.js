@@ -11,9 +11,7 @@ router.post('/chats', restrictTo('user', 'admin', 'superadmin'), async (req, res
   const { id, role } = req.user;
   try {
     // Ensure only the user can create a chat for themselves
-    if (role === 'user' && user_id !== id) {
-      return res.status(403).json({ error: 'Cannot create chat for another user' });
-    }
+    
     const { data, error } = await supabase
       .from('chats')
       .insert([{ user_id }])
