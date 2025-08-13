@@ -106,10 +106,10 @@ async function sendMessage(req, res) {
       if (type === 'image') folder = 'images';
       else if (type === 'video') folder = 'videos';
       else if (type === 'audio') folder = 'audio';
-      const fileName = `${folder}/${uuidv4()}${ext}`;
+      const fileName = `chat-files/${folder}/${uuidv4()}${ext}`;
       // Upload to Supabase Storage
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('chat-files')
+        .from('images')
         .upload(fileName, req.file.buffer, {
           contentType: req.file.mimetype,
           upsert: false,
@@ -119,7 +119,7 @@ async function sendMessage(req, res) {
         return res.status(500).json({ error: uploadError.message });
       }
       // Get public URL
-      const { data: publicUrlData } = supabase.storage.from('chat-files').getPublicUrl(fileName);
+      const { data: publicUrlData } = supabase.storage.from('images').getPublicUrl(fileName);
       file_url = publicUrlData.publicUrl;
       finalType = type;
       console.log('sendMessage - File uploaded:', file_url);
@@ -171,9 +171,9 @@ async function replyMessage(req, res) {
       if (type === 'image') folder = 'images';
       else if (type === 'video') folder = 'videos';
       else if (type === 'audio') folder = 'audio';
-      const fileName = `${folder}/${uuidv4()}${ext}`;
+      const fileName = `chat-files/${folder}/${uuidv4()}${ext}`;
       const { data: uploadData, error: uploadError } = await supabase.storage
-        .from('chat-files')
+        .from('images')
         .upload(fileName, req.file.buffer, {
           contentType: req.file.mimetype,
           upsert: false,
@@ -182,7 +182,7 @@ async function replyMessage(req, res) {
         console.error('replyMessage - File upload error:', uploadError);
         return res.status(500).json({ error: uploadError.message });
       }
-      const { data: publicUrlData } = supabase.storage.from('chat-files').getPublicUrl(fileName);
+      const { data: publicUrlData } = supabase.storage.from('images').getPublicUrl(fileName);
       file_url = publicUrlData.publicUrl;
       finalType = type;
       console.log('replyMessage - File uploaded:', file_url);
