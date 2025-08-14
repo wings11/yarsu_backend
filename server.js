@@ -17,6 +17,7 @@ import generalRoutes from './routes/generalRoutes.js';
 import docsRoutes from './routes/docsRoutes.js';
 import linkRoutes from './routes/linkRoutes.js';
 import highlightRoutes from './routes/highlightRoutes.js';
+import analyticsRoutes from './routes/analyticsRoutes.js';
 
 dotenv.config();
 
@@ -140,6 +141,7 @@ app.use('/api', generalRoutes);
 app.use('/api', docsRoutes);
 app.use('/api', linkRoutes);
 app.use('/api', highlightRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json  ({ message: 'API is running Healthily' });
