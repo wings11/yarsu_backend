@@ -1,11 +1,11 @@
 import { supabase } from '../server.js';
 
 export const createJob = async (req, res) => {
-  const { title, pinkcard, thai, payment_type, stay, location, job_location, notes } = req.body;
+  const { title, pinkcard, thai, payment_type, stay, location, job_location, notes, job_num } = req.body;
   try {
     const { data, error } = await supabase
       .from('jobs')
-      .insert([{ title, pinkcard, thai, payment_type, stay, location, job_location, notes }])
+      .insert([{ title, pinkcard, thai, payment_type, stay, location, job_location, notes, job_num }])
       .select();
     if (error) throw error;
     res.status(201).json(data[0]);
@@ -45,11 +45,11 @@ export const getJobById = async (req, res) => {
 
 export const updateJob = async (req, res) => {
   const { id } = req.params;
-  const { title, pinkcard, thai, payment_type, stay, location, job_location, notes } = req.body;
+  const { title, pinkcard, thai, payment_type, stay, location, job_location, notes, job_num } = req.body;
   try {
     const { data, error } = await supabase
       .from('jobs')
-      .update({ title, pinkcard, thai, payment_type, stay, location, job_location, notes })
+      .update({ title, pinkcard, thai, payment_type, stay, location, job_location, notes, job_num })
       .eq('id', id)
       .select();
     if (error) throw error;
