@@ -13,11 +13,13 @@ import courseRoutes from './routes/courseRoutes.js';
 import cjob from './config/cron.js';
 import http from 'http';
 import { Server as SocketIOServer } from 'socket.io';
+import { setPresence, removePresenceBySocket } from './services/presenceService.js';
 import generalRoutes from './routes/generalRoutes.js';
 import docsRoutes from './routes/docsRoutes.js';
 import linkRoutes from './routes/linkRoutes.js';
 import highlightRoutes from './routes/highlightRoutes.js';
 import analyticsRoutes from './routes/analyticsRoutes.js';
+import notiChatRoutes from './routes/noti_chat_routes.js';
 
 dotenv.config();
 
@@ -142,6 +144,7 @@ app.use('/api', docsRoutes);
 app.use('/api', linkRoutes);
 app.use('/api', highlightRoutes);
 app.use('/api/analytics', analyticsRoutes);
+app.use('/api', notiChatRoutes);
 
 app.get('/api/health', (req, res) => {
   res.status(200).json  ({ message: 'API is running Healthily' });
@@ -156,8 +159,18 @@ const io = new SocketIOServer(httpServer, {
   }
 });
 
+// Presence map handled by presenceService (Redis or in-memory fallback)
+
 io.on('connection', (socket) => {
   console.log('A user connected:', socket.id);
+
+  // client should emit 'identify' with their userId after connecting
+  socket.on('identify', (userId) => {
+    if (userId) {
+  setPresence(String(userId), socket.id).catch(() => {});
+  console.log(`Socket ${socket.id} identified as user ${userId}`);
+    }
+  });
 
   socket.on('send_message', (data) => {
     // Broadcast the message to all clients in the same chat room
@@ -171,6 +184,8 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect', () => {
     console.log('A user disconnected:', socket.id);
+  // remove presence entries that match this socket id
+  removePresenceBySocket(socket.id).catch(() => {});
   });
 });
 
@@ -188,5 +203,5 @@ initDB()
     process.exit(1);
   });
 
-// Export supabase clients for controllers
-export { supabase, supabaseAdmin };
+// Export supabase clients and socket presence for controllers
+export { supabase, supabaseAdmin, io };
