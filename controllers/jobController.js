@@ -1,15 +1,54 @@
 import { supabase } from '../server.js';
 
 export const createJob = async (req, res) => {
-  const { title, pinkcard, thai, payment_type, stay, location, job_location, notes, job_num, media } = req.body;
+  // collect all possible fields from body; set sensible defaults for nullable fields
+  const {
+    title,
+    pinkcard,
+    thai,
+    payment_type = null, // make nullable by default
+    stay,
+    location,
+    job_location,
+    notes,
+    job_num,
+    media,
+    job_date,
+    payment,
+    pay_amount,
+    accept_amount,
+    treat = false // default false on create
+  } = req.body;
+
   if (media && !Array.isArray(media)) {
     return res.status(400).json({ error: 'media must be an array' });
   }
+
   try {
+    // prepare insert payload with explicit defaults to avoid inserting undefined
+    const insertPayload = {
+      title,
+      pinkcard,
+      thai,
+      payment_type: payment_type ?? null,
+      stay,
+      location,
+      job_location,
+      notes,
+      job_num,
+      media: media || [],
+      job_date,
+      payment,
+      pay_amount,
+      accept_amount,
+      treat: treat ?? false
+    };
+
     const { data, error } = await supabase
       .from('jobs')
-      .insert([{ title, pinkcard, thai, payment_type, stay, location, job_location, notes, job_num, media: media || [] }])
+      .insert([insertPayload])
       .select();
+
     if (error) throw error;
     res.status(201).json(data[0]);
   } catch (error) {
@@ -48,16 +87,37 @@ export const getJobById = async (req, res) => {
 
 export const updateJob = async (req, res) => {
   const { id } = req.params;
-  const { title, pinkcard, thai, payment_type, stay, location, job_location, notes, job_num, media } = req.body;
-  if (media && !Array.isArray(media)) {
+  const body = req.body || {};
+
+  if (body.media && !Array.isArray(body.media)) {
     return res.status(400).json({ error: 'media must be an array' });
   }
+
   try {
+    // build an update payload only from provided properties to avoid overwriting with undefined
+    const updatableFields = [
+      'title', 'pinkcard', 'thai', 'payment_type', 'stay', 'location', 'job_location', 'notes',
+      'job_num', 'media', 'job_date', 'payment', 'pay_amount', 'accept_amount', 'treat'
+    ];
+
+    const updatePayload = {};
+    for (const key of updatableFields) {
+      if (Object.prototype.hasOwnProperty.call(body, key)) {
+        // coerce media to empty array if provided null/undefined explicitly? keep as provided
+        updatePayload[key] = key === 'media' ? (body.media || []) : body[key];
+      }
+    }
+
+    if (Object.keys(updatePayload).length === 0) {
+      return res.status(400).json({ error: 'No valid fields provided to update' });
+    }
+
     const { data, error } = await supabase
       .from('jobs')
-      .update({ title, pinkcard, thai, payment_type, stay, location, job_location, notes, job_num, media: media || [] })
+      .update(updatePayload)
       .eq('id', id)
       .select();
+
     if (error) throw error;
     if (data.length === 0) return res.status(404).json({ error: 'Job not found' });
     res.json(data[0]);

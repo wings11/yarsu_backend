@@ -149,28 +149,84 @@ async function sendToUser(userId, payload = { data: {} }, options = {}) {
 		const batches = chunkArray(tokens, 500);
 		const results = [];
 		for (const batch of batches) {
-			const message = {
-				tokens: batch,
-				data: Object.assign({}, payload.data || {}, { messageId: String(payload.data?.messageId || '') }),
-				android: { priority: 'high', ttl: options.ttl || 0 },
-				apns: { headers: { 'apns-priority': '10', 'apns-expiration': String(options.apnsExpiration || 0) }, payload: { aps: { 'content-available': 1, sound: 'default' } } }
-			};
-			const resp = await admin.messaging().sendMulticast(message);
-			results.push(resp);
+			// Prepare a common message shape used by sendMulticast. We'll try
+			// sendMulticast first (preferred), then fall back to sendAll or
+			// sendToDevice depending on which APIs are available on the
+			// installed firebase-admin version in the runtime environment.
+			const messaging = admin.messaging();
+			const commonData = Object.assign({}, payload.data || {}, { messageId: String(payload.data?.messageId || '') });
+			const androidOpts = { priority: 'high', ttl: options.ttl || 0 };
+			const apnsOpts = { headers: { 'apns-priority': '10', 'apns-expiration': String(options.apnsExpiration || 0) }, payload: { aps: { 'content-available': 1, sound: 'default' } } };
 
-			resp.responses.forEach(async (r, idx) => {
-				if (!r.success) {
-					const token = batch[idx];
-					if (r.error && ['messaging/registration-token-not-registered', 'messaging/invalid-registration-token'].includes(r.error.code)) {
-						try {
-							await adminClient.from('noti_push_tokens').update({ enabled: false }).eq('token', token);
-							console.log('Disabled invalid token', token);
-						} catch (e) {
-							console.error('Failed to disable token', token, e.message);
+			// Helper to mark tokens invalid in the DB
+			const disableToken = async (token) => {
+				try {
+					await adminClient.from('noti_push_tokens').update({ enabled: false }).eq('token', token);
+					console.log('Disabled invalid token', token);
+				} catch (e) {
+					console.error('Failed to disable token', token, e.message);
+				}
+			};
+
+			// Try sendMulticast if available (modern API)
+			if (typeof messaging.sendMulticast === 'function') {
+				const message = {
+					tokens: batch,
+					data: commonData,
+					android: androidOpts,
+					apns: apnsOpts
+				};
+				const resp = await messaging.sendMulticast(message);
+				results.push(resp);
+				(resp.responses || []).forEach((r, idx) => {
+					if (!r.success) {
+						const token = batch[idx];
+						const code = r.error && r.error.code;
+						if (code && ['messaging/registration-token-not-registered', 'messaging/invalid-registration-token'].includes(code)) {
+							disableToken(token);
 						}
 					}
-				}
-			});
+				});
+
+			// Next, try sendAll (batch of Message objects)
+			} else if (typeof messaging.sendAll === 'function') {
+				const messages = batch.map((token) => ({ token, data: commonData, android: androidOpts, apns: apnsOpts }));
+				const resp = await messaging.sendAll(messages);
+				results.push(resp);
+				(resp.responses || []).forEach((r, idx) => {
+					if (!r.success) {
+						const token = batch[idx];
+						const code = r.error && r.error.code;
+						if (code && ['messaging/registration-token-not-registered', 'messaging/invalid-registration-token'].includes(code)) {
+							disableToken(token);
+						}
+					}
+				});
+
+			// Finally, fall back to sendToDevice for older SDKs
+			} else if (typeof messaging.sendToDevice === 'function') {
+				// sendToDevice expects a payload with notification/data shape
+				const payloadForDevice = {
+					data: commonData,
+					android: androidOpts,
+					apns: apnsOpts
+				};
+				const resp = await messaging.sendToDevice(batch, payloadForDevice);
+				results.push(resp);
+				const responses = resp.results || resp.responses || [];
+				responses.forEach((r, idx) => {
+					// sendToDevice uses a different shape; look for error codes in r.error
+					const token = batch[idx];
+					const code = r && r.error && r.error.code;
+					if (code && ['messaging/registration-token-not-registered', 'messaging/invalid-registration-token', 'registration-token-not-registered', 'invalid-registration-token'].includes(code)) {
+						disableToken(token);
+					}
+				});
+
+			} else {
+				// No known messaging method available
+				throw new Error('No supported Firebase messaging send method found (sendMulticast/sendAll/sendToDevice)');
+			}
 		}
 		return { success: true, results };
 	} catch (err) {
