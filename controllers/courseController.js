@@ -2,8 +2,9 @@ import { supabase } from '../server.js';
 
 export const createCourse = async (req, res) => {
   const { name, duration, price, centre_name, location, notes } = req.body;
-  if (typeof price !== 'number' || price <= 0) {
-    return res.status(400).json({ error: 'price must be a positive number' });
+  // Accept zero-priced courses (free) — price must be a non-negative number
+  if (!Number.isFinite(price) || price < 0) {
+    return res.status(400).json({ error: 'price must be a non-negative number' });
   }
   try {
     const { data, error } = await supabase
@@ -49,8 +50,9 @@ export const getCourseById = async (req, res) => {
 export const updateCourse = async (req, res) => {
   const { id } = req.params;
   const { name, duration, price, centre_name, location, notes } = req.body;
-  if (price && (typeof price !== 'number' || price <= 0)) {
-    return res.status(400).json({ error: 'price must be a positive number' });
+  // For updates, only validate when price is provided (allow zero)
+  if (price !== undefined && (!Number.isFinite(price) || price < 0)) {
+    return res.status(400).json({ error: 'price must be a non-negative number' });
   }
   try {
     const { data, error } = await supabase
