@@ -98,11 +98,18 @@ async function unregisterToken({ userId, token, deviceId = null }) {
 	try {
 		const adminClient = getSupabaseAdmin();
 		if (!adminClient) throw new Error('Supabase admin client not initialized');
-		let qb = adminClient.from('noti_push_tokens');
-		if (token) qb = qb.eq('token', token);
-		if (deviceId) qb = qb.eq('device_id', deviceId);
-		if (userId) qb = qb.eq('user_id', userId);
-		const { data, error } = await qb.delete().select();
+		// Build a filter object for .match to avoid relying on chained eq() which
+		// had runtime issues in some environments (qb.eq is not a function).
+		const filters = {};
+		if (token) filters.token = token;
+		if (deviceId) filters.device_id = deviceId;
+		if (userId) filters.user_id = userId;
+		if (!Object.keys(filters).length) {
+			// Nothing to filter by; avoid deleting the whole table
+			throw new Error('unregisterToken requires token, deviceId, or userId');
+		}
+		console.log('unregisterToken - filters:', filters);
+		const { data, error } = await adminClient.from('noti_push_tokens').delete().match(filters).select();
 		if (error) {
 			console.error('unregisterToken supabase error', error);
 			throw error;
