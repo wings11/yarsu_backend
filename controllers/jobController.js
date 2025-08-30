@@ -16,7 +16,8 @@ export const createJob = async (req, res) => {
     job_date,
     payment,
     pay_amount,
-    accept_amount,
+  accept_amount,
+  accept,
     treat = false // default false on create
   } = req.body;
 
@@ -40,7 +41,8 @@ export const createJob = async (req, res) => {
       job_date,
       payment,
       pay_amount,
-      accept_amount,
+  accept_amount,
+  accept,
       treat: treat ?? false
     };
 
@@ -97,7 +99,7 @@ export const updateJob = async (req, res) => {
     // build an update payload only from provided properties to avoid overwriting with undefined
     const updatableFields = [
       'title', 'pinkcard', 'thai', 'payment_type', 'stay', 'location', 'job_location', 'notes',
-      'job_num', 'media', 'job_date', 'payment', 'pay_amount', 'accept_amount', 'treat'
+  'job_num', 'media', 'job_date', 'payment', 'pay_amount', 'accept_amount', 'accept', 'treat'
     ];
 
     const updatePayload = {};
