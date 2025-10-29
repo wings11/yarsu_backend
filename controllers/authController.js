@@ -25,7 +25,7 @@ export const getUserRole = async (req, res) => {
     // Get user role from users table using admin client (bypasses RLS)
     const { data: userData, error: userError } = await supabaseAdmin
       .from('users')
-      .select('role, email')
+      .select('role, email, name')
       .eq('id', user.id)
       .single();
 
@@ -40,7 +40,8 @@ export const getUserRole = async (req, res) => {
       user: {
         id: user.id,
         email: userData.email,
-        role: userData.role
+        role: userData.role,
+        name: userData.name
       }
     });
 
@@ -91,7 +92,7 @@ export const getAllUsers = async (req, res) => {
     // Get all users using admin client (bypasses RLS)
     const { data: users, error: usersError } = await supabaseAdmin
       .from('users')
-      .select('id, email, role')
+      .select('id, email, role, name')
       .order('email');
 
     if (usersError) {

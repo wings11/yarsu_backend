@@ -37,7 +37,7 @@ export const restrictTo = (...allowedRoles) => {
         // Auto-create user in public.users if missing
         const { data: newUserData, error: insertError } = await supabaseAdmin
           .from('users')
-          .insert([{ id: user.id, email: authUser.user.email, role: 'user' }])
+          .insert([{ id: user.id, email: authUser.user.email, role: 'user', name: null }])
           .select()
           .single();
         if (insertError || !newUserData) {
