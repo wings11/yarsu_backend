@@ -140,6 +140,19 @@ async function sendMessage(req, res) {
       return res.status(400).json({ error: error.message });
     }
     console.log('sendMessage - Message inserted:', data);
+    
+    // Emit Socket.io event to notify all clients in the chat room
+    const { io } = await import('../server.js');
+    const roomName = `chat_${chat_id}`;
+    const eventPayload = {
+      chatId: chat_id,
+      message: data
+    };
+    
+    console.log(`📤 EMITTING new_message to room: ${roomName}`, eventPayload);
+    io.to(roomName).emit('new_message', eventPayload);
+    console.log(`✅ Socket.io event emitted to ${roomName}`);
+    
     res.json({ chat_id, message: data });
   } catch (err) {
     console.error('sendMessage - Unexpected error:', err);
@@ -196,12 +209,25 @@ async function replyMessage(req, res) {
         type: finalType,
         file_url,
       },
-    ]);
+    ]).select().single();
     if (error) {
       console.error('replyMessage - Insert message error:', error);
       return res.status(400).json({ error: error.message });
     }
     console.log('replyMessage - Message inserted:', data);
+    
+    // Emit Socket.io event to notify all clients in the chat room
+    const { io } = await import('../server.js');
+    const roomName = `chat_${chat_id}`;
+    const eventPayload = {
+      chatId: chat_id,
+      message: data
+    };
+    
+    console.log(`📤 EMITTING new_message to room: ${roomName}`, eventPayload);
+    io.to(roomName).emit('new_message', eventPayload);
+    console.log(`✅ Socket.io event emitted to ${roomName}`);
+    
     res.json(data);
   } catch (err) {
     console.error('replyMessage - Unexpected error:', err);

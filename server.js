@@ -167,25 +167,54 @@ io.on('connection', (socket) => {
   // client should emit 'identify' with their userId after connecting
   socket.on('identify', (userId) => {
     if (userId) {
-  setPresence(String(userId), socket.id).catch(() => {});
-  console.log(`Socket ${socket.id} identified as user ${userId}`);
+      setPresence(String(userId), socket.id).catch(() => {});
+      console.log(`Socket ${socket.id} identified as user ${userId}`);
+      
+      // Join user's personal room for targeted messages
+      socket.join(`user_${userId}`);
     }
   });
 
-  socket.on('send_message', (data) => {
-    // Broadcast the message to all clients in the same chat room
-    io.to(data.chatId).emit('receive_message', data);
+  // Join a specific chat room
+  socket.on('join_chat', (chatId) => {
+    socket.join(`chat_${chatId}`);
+    console.log(`Socket ${socket.id} joined chat ${chatId}`);
+    
+    // Notify others in the chat that someone joined
+    socket.to(`chat_${chatId}`).emit('user_joined', { chatId, socketId: socket.id });
   });
 
-  socket.on('join_chat', (chatId) => {
-    socket.join(chatId);
-    console.log(`Socket ${socket.id} joined chat ${chatId}`);
+  // Leave a specific chat room
+  socket.on('leave_chat', (chatId) => {
+    socket.leave(`chat_${chatId}`);
+    console.log(`Socket ${socket.id} left chat ${chatId}`);
+    
+    // Notify others in the chat that someone left
+    socket.to(`chat_${chatId}`).emit('user_left', { chatId, socketId: socket.id });
+  });
+
+  // Handle typing indicator
+  socket.on('typing', (data) => {
+    socket.to(`chat_${data.chatId}`).emit('user_typing', {
+      chatId: data.chatId,
+      userId: data.userId,
+      isTyping: data.isTyping
+    });
+  });
+
+  // Mark message as read
+  socket.on('message_read', (data) => {
+    socket.to(`chat_${data.chatId}`).emit('message_read_update', {
+      chatId: data.chatId,
+      messageId: data.messageId,
+      userId: data.userId
+    });
   });
 
   socket.on('disconnect', () => {
     console.log('A user disconnected:', socket.id);
-  // remove presence entries that match this socket id
-  removePresenceBySocket(socket.id).catch(() => {});
+    // remove presence entries that match this socket id
+    removePresenceBySocket(socket.id).catch(() => {});
   });
 });
 
