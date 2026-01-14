@@ -1,0 +1,199 @@
+-- WARNING: This schema is for context only and is not meant to be run.
+-- Table order and constraints may not be valid for execution.
+
+CREATE TABLE public.chats (
+  id integer NOT NULL DEFAULT nextval('chats_id_seq'::regclass),
+  user_id uuid UNIQUE,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT chats_pkey PRIMARY KEY (id),
+  CONSTRAINT chats_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.condos (
+  id integer NOT NULL DEFAULT nextval('condos_id_seq'::regclass),
+  name character varying NOT NULL,
+  address character varying NOT NULL,
+  rent_fee numeric NOT NULL,
+  images ARRAY NOT NULL,
+  swimming_pool boolean NOT NULL DEFAULT false,
+  free_wifi boolean NOT NULL DEFAULT false,
+  gym boolean NOT NULL DEFAULT false,
+  garden boolean NOT NULL DEFAULT false,
+  co_working_space boolean NOT NULL DEFAULT false,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  notes text,
+  CONSTRAINT condos_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.courses (
+  id integer NOT NULL DEFAULT nextval('courses_id_seq'::regclass),
+  name character varying NOT NULL,
+  duration character varying NOT NULL,
+  price numeric NOT NULL,
+  centre_name character varying NOT NULL,
+  location character varying NOT NULL,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  notes text,
+  CONSTRAINT courses_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.docs (
+  id integer NOT NULL DEFAULT nextval('docs_id_seq'::regclass),
+  text text NOT NULL,
+  media ARRAY DEFAULT '{}'::text[],
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT docs_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.general (
+  id integer NOT NULL DEFAULT nextval('general_id_seq'::regclass),
+  text text NOT NULL,
+  media ARRAY DEFAULT '{}'::text[],
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT general_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.highlights (
+  id integer NOT NULL DEFAULT nextval('highlights_id_seq'::regclass),
+  image text NOT NULL,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT highlights_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.hotels (
+  id integer NOT NULL DEFAULT nextval('hotels_id_seq'::regclass),
+  name character varying NOT NULL,
+  address character varying NOT NULL,
+  price numeric NOT NULL,
+  nearby_famous_places ARRAY NOT NULL,
+  breakfast boolean NOT NULL DEFAULT false,
+  free_wifi boolean NOT NULL DEFAULT false,
+  swimming_pool boolean NOT NULL DEFAULT false,
+  images ARRAY NOT NULL,
+  notes character varying,
+  admin_rating integer NOT NULL CHECK (admin_rating >= 1 AND admin_rating <= 5),
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT hotels_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.jobs (
+  id integer NOT NULL DEFAULT nextval('jobs_id_seq'::regclass),
+  title character varying NOT NULL,
+  pinkcard boolean NOT NULL DEFAULT false,
+  thai boolean NOT NULL DEFAULT false,
+  payment_type boolean,
+  stay boolean NOT NULL DEFAULT false,
+  location character varying,
+  job_location character varying NOT NULL,
+  notes character varying,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  job_num character varying,
+  media ARRAY DEFAULT '{}'::text[],
+  job_date text,
+  payment text,
+  pay_amount text,
+  accept_amount text,
+  treat boolean DEFAULT false,
+  accept text,
+  CONSTRAINT jobs_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.links (
+  id integer NOT NULL DEFAULT nextval('links_id_seq'::regclass),
+  platform character varying NOT NULL,
+  url text NOT NULL,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT links_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.messages (
+  id integer NOT NULL DEFAULT nextval('messages_id_seq'::regclass),
+  chat_id integer,
+  sender_id uuid,
+  message text,
+  type character varying NOT NULL DEFAULT 'text'::character varying,
+  file_url text,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT messages_pkey PRIMARY KEY (id),
+  CONSTRAINT messages_chat_id_fkey FOREIGN KEY (chat_id) REFERENCES public.chats(id),
+  CONSTRAINT messages_sender_id_fkey FOREIGN KEY (sender_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.noti_push_tokens (
+  id uuid NOT NULL DEFAULT gen_random_uuid(),
+  user_id uuid NOT NULL,
+  token text NOT NULL,
+  device_id text,
+  platform text,
+  provider text NOT NULL DEFAULT 'fcm'::text,
+  enabled boolean NOT NULL DEFAULT true,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  updated_at timestamp with time zone NOT NULL DEFAULT now(),
+  CONSTRAINT noti_push_tokens_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.pony_messages (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  sender character varying NOT NULL,
+  recipient character varying NOT NULL,
+  platform character varying NOT NULL,
+  message text,
+  message_type character varying NOT NULL DEFAULT 'text'::character varying,
+  media_url text,
+  created_at timestamp with time zone DEFAULT now(),
+  username character varying,
+  first_name character varying,
+  last_name character varying,
+  name character varying,
+  nickname character varying,
+  admin_read boolean DEFAULT false,
+  platform_user_id text,
+  platform_data jsonb,
+  profile_pic text,
+  CONSTRAINT pony_messages_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.pony_platform_connections (
+  id bigint GENERATED ALWAYS AS IDENTITY NOT NULL,
+  admin_email character varying NOT NULL,
+  platform character varying NOT NULL,
+  access_token text NOT NULL,
+  refresh_token text,
+  created_at timestamp with time zone DEFAULT now(),
+  platform_bot_id text,
+  updated_at timestamp with time zone,
+  CONSTRAINT pony_platform_connections_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.restaurants (
+  id integer NOT NULL DEFAULT nextval('restaurants_id_seq'::regclass),
+  name character varying NOT NULL,
+  location character varying NOT NULL,
+  images ARRAY NOT NULL,
+  popular_picks ARRAY NOT NULL,
+  admin_rating integer NOT NULL CHECK (admin_rating >= 1 AND admin_rating <= 5),
+  notes character varying,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT restaurants_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.travel_posts (
+  id integer NOT NULL DEFAULT nextval('travel_posts_id_seq'::regclass),
+  name character varying NOT NULL,
+  place character varying NOT NULL,
+  highlights ARRAY NOT NULL,
+  images ARRAY NOT NULL,
+  admin_rating integer NOT NULL CHECK (admin_rating >= 1 AND admin_rating <= 5),
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  notes text,
+  CONSTRAINT travel_posts_pkey PRIMARY KEY (id)
+);
+CREATE TABLE public.user_inquiries (
+  id integer NOT NULL DEFAULT nextval('user_inquiries_id_seq'::regclass),
+  job_id integer,
+  user_id uuid,
+  name character varying NOT NULL,
+  phonenumber character varying NOT NULL,
+  address character varying NOT NULL,
+  birthday date NOT NULL,
+  thailanguage boolean NOT NULL,
+  gender boolean NOT NULL,
+  created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT user_inquiries_pkey PRIMARY KEY (id),
+  CONSTRAINT user_inquiries_job_id_fkey FOREIGN KEY (job_id) REFERENCES public.jobs(id),
+  CONSTRAINT user_inquiries_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
+);
+CREATE TABLE public.users (
+  id uuid NOT NULL,
+  email character varying NOT NULL,
+  role character varying NOT NULL DEFAULT 'member'::character varying,
+  name character varying,
+  CONSTRAINT users_pkey PRIMARY KEY (id),
+  CONSTRAINT users_id_fkey FOREIGN KEY (id) REFERENCES auth.users(id)
+);

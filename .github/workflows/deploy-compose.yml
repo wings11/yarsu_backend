@@ -1,0 +1,76 @@
+# =====================================================
+# GitHub Actions - Docker Compose Deployment
+# =====================================================
+# Alternative deployment using docker-compose on VPS
+# Use this if you want Redis alongside your backend
+
+name: Deploy with Docker Compose
+
+on:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy files to VPS
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT || 22 }}
+          source: "."
+          target: "/opt/yarsu"
+          overwrite: true
+
+      - name: Deploy with Docker Compose
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: ${{ secrets.VPS_USERNAME }}
+          key: ${{ secrets.VPS_SSH_KEY }}
+          port: ${{ secrets.VPS_SSH_PORT || 22 }}
+          script: |
+            cd /opt/yarsu
+            
+            # Create .env file from secrets
+            cat > .env << 'EOF'
+            NODE_ENV=production
+            PORT=3000
+            ORACLE_USER=${{ secrets.ORACLE_USER }}
+            ORACLE_PASSWORD=${{ secrets.ORACLE_PASSWORD }}
+            ORACLE_CONNECTION_STRING=${{ secrets.ORACLE_CONNECTION_STRING }}
+            SUPABASE_URL=${{ secrets.SUPABASE_URL }}
+            SUPABASE_ANON_KEY=${{ secrets.SUPABASE_ANON_KEY }}
+            SUPABASE_SERVICE_KEY=${{ secrets.SUPABASE_SERVICE_KEY }}
+            FIREBASE_SERVICE_ACCOUNT_B64=${{ secrets.FIREBASE_SERVICE_ACCOUNT_B64 }}
+            REDIS_URL=redis://redis:6379
+            EOF
+            
+            # Build and deploy
+            docker-compose -f docker-compose.yml -f docker-compose.prod.yml down
+            docker-compose -f docker-compose.yml -f docker-compose.prod.yml build --no-cache
+            docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+            
+            # Clean up
+            docker image prune -f
+            
+            # Show status
+            docker-compose ps
+            
+            echo "✅ Deployment complete!"
+
+      - name: Health check
+        run: |
+          echo "Waiting for service to start..."
+          sleep 15
+          curl -f http://${{ secrets.VPS_HOST }}:3000/api/health || echo "Health check pending..."

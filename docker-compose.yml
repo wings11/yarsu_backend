@@ -1,0 +1,80 @@
+# =====================================================
+# Docker Compose for Yarsu Backend
+# =====================================================
+# Production-ready setup with Oracle Cloud Free Tier
+# 
+# Usage:
+#   Development: docker-compose up -d
+#   Production:  docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+  # ===================================================
+  # Main Backend Application
+  # ===================================================
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.oracle
+    container_name: yarsu-backend
+    restart: unless-stopped
+    ports:
+      - "${PORT:-3000}:3000"
+    environment:
+      - NODE_ENV=${NODE_ENV:-production}
+      - PORT=3000
+      # Oracle Database Configuration
+      - ORACLE_USER=${ORACLE_USER}
+      - ORACLE_PASSWORD=${ORACLE_PASSWORD}
+      - ORACLE_CONNECTION_STRING=${ORACLE_CONNECTION_STRING}
+      # Supabase Auth Configuration (Free tier)
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_ANON_KEY=${SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_KEY=${SUPABASE_SERVICE_KEY}
+      # Firebase for Push Notifications
+      - FIREBASE_SERVICE_ACCOUNT_B64=${FIREBASE_SERVICE_ACCOUNT_B64}
+      # Redis for sessions/caching (optional)
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - redis
+    networks:
+      - yarsu-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # ===================================================
+  # Redis (for sessions, caching, socket.io adapter)
+  # ===================================================
+  redis:
+    image: redis:7-alpine
+    container_name: yarsu-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - yarsu-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+# ===================================================
+# Networks
+# ===================================================
+networks:
+  yarsu-network:
+    driver: bridge
+
+# ===================================================
+# Volumes
+# ===================================================
+volumes:
+  redis-data:
+    driver: local
